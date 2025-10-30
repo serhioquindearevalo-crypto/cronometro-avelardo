@@ -33,8 +33,9 @@
             display: block;
             margin: 0 auto;
         }
+        /* Ajuste de tamaño de fuente para SS.ms */
         #display {
-            font-size: 6em; 
+            font-size: 8em; 
             margin-bottom: 40px;
             color: white;
             background-color: rgba(0, 0, 0, 0.3);
@@ -82,7 +83,7 @@
                 max-width: 250px;
             }
             #display {
-                font-size: 4em;
+                font-size: 5em;
                 padding: 15px 30px;
             }
             .buttons-container {
@@ -102,11 +103,11 @@
         <img src="logo_avelardo.png" alt="Logo El Avelardo">
     </div>
 
-    <div id="display">00:00.00</div>
+    <div id="display">00.00</div>
     
     <div class="buttons-container">
-        <button id="startStop">INICIAR</button>
-        <button id="reset">REINICIAR</button>
+        <button id="startStop">INICIAR / PAUSAR (PUSH)</button>
+        <button id="reset">REINICIAR (Espacio)</button>
     </div>
 
     <script>
@@ -120,17 +121,17 @@
         
         // Variables para la lógica de DOBLE CLICK
         let lastKeyPressTime = 0;
-        const DOUBLE_CLICK_TIME = 300; // Milisegundos: si el segundo click es antes de 300ms, es doble click.
+        const DOUBLE_CLICK_TIME = 300; // Milisegundos para diferenciar un pulso simple de un doble pulso.
 
-        // Función para formatear el tiempo (MM:SS.ms)
+        // Función para formatear el tiempo (SS.ms)
         function formatTime(ms) {
+            // Se usa el total de segundos sin calcular minutos ni horas
             const totalSeconds = Math.floor(ms / 1000);
-            const minutes = Math.floor(totalSeconds / 60) % 60;
-            const seconds = totalSeconds % 60;
-            const milliseconds = Math.floor((ms % 1000) / 10);
+            const seconds = totalSeconds;
+            // Milisegundos: se usa el resto de ms entre 1000, y se toman los primeros dos dígitos
+            const milliseconds = Math.floor((ms % 1000) / 10); 
 
             return (
-                String(minutes).padStart(2, '0') + ':' +
                 String(seconds).padStart(2, '0') + '.' +
                 String(milliseconds).padStart(2, '0')
             );
@@ -141,20 +142,20 @@
             display.textContent = formatTime(elapsedTime);
         }
 
-        // Lógica de INICIAR / PARAR (Pausar/Reanudar)
+        // Lógica de INICIAR / PAUSAR (Pausar/Reanudar)
         const toggleStopwatch = () => {
             if (!running) {
                 // Estado: PAUSADO -> INICIAR (Reanudar/Comenzar)
                 running = true;
                 startTime = Date.now() - elapsedTime;
                 intervalId = setInterval(updateTime, 10); 
-                startStopButton.textContent = 'PARAR';
+                startStopButton.textContent = 'PARAR / REINICIAR';
                 startStopButton.classList.add('stop-state');
             } else {
                 // Estado: CORRIENDO -> PARAR (Pausar)
                 running = false;
                 clearInterval(intervalId);
-                startStopButton.textContent = 'INICIAR';
+                startStopButton.textContent = 'INICIAR / REINICIAR';
                 startStopButton.classList.remove('stop-state');
             }
         };
@@ -164,8 +165,8 @@
             clearInterval(intervalId);
             running = false;
             elapsedTime = 0;
-            display.textContent = '00:00.00';
-            startStopButton.textContent = 'INICIAR';
+            display.textContent = '00.00'; // Valor de reinicio a 00.00
+            startStopButton.textContent = 'INICIAR / REINICIAR';
             startStopButton.classList.remove('stop-state');
         };
 
@@ -176,7 +177,6 @@
 
         // Lógica Avanzada de Teclado (PUSH)
         document.addEventListener('keydown', (event) => {
-            // Evita que el navegador haga scroll o acciones no deseadas al presionar ciertas teclas
             if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault(); 
             }
@@ -189,27 +189,4 @@
                 
                 // Si la diferencia es menor al tiempo de doble click y el cronómetro está detenido,
                 // entonces se considera DOBLE CLICK para REINICIAR.
-                if (timeDiff < DOUBLE_CLICK_TIME) {
-                    // Es doble click -> REINICIAR
-                    if (!running) {
-                        resetStopwatch();
-                        // Previene que el primer pulso del doble click pause/inicie.
-                        lastKeyPressTime = 0; 
-                    }
-                } else {
-                    // Es click simple -> INICIAR/PAUSAR
-                    toggleStopwatch();
-                }
-
-                // Actualiza el tiempo del último pulso
-                lastKeyPressTime = currentTime;
-            }
-
-            // 2. Manejo de la Barra Espaciadora (Reiniciar Secundario)
-            else if (event.key === ' ') {
-                resetStopwatch();
-            }
-        });
-    </script>
-</body>
-</html>
+                if (timeDiff < DOUBLE
